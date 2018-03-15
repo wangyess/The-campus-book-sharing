@@ -1,14 +1,31 @@
 <?php
 tpl('DB/Db');
+tpl('validator/Validator');
 
 class Model extends Db
 {
     //这个是储存安全的传参的数组
     public $filled = [];
+    public $validator;
 
     public function __construct()
     {
         parent::__construct($this->table);
+        $this->validator = new Validator($this->table);
+
+    }
+
+    //验证
+    public function test(&$msg)
+    {
+        foreach ($this->filled as $col => $val) {
+            $is_true = $this->validator->validator_rule($val, $this->rule[ $col ], $validator_msg);
+            if (!$is_true) {
+                $msg[ $col ] = $validator_msg;
+                return false;
+            }
+        }
+        return true;
     }
 
     //过滤传参的函数
@@ -32,10 +49,18 @@ class Model extends Db
     public function start_execute(&$msg = [])
     {
         $filled = &$this->filled;
-        //验证
+        //--验证--规则--
+        $data = $this->test($msg);
+        if (!$data) {
+            return false;
+        }
         //判断是不是更新
         $is_update = (bool)@$id = @$filled['id'];
-        //写到用户的时候要有加密
+
+        //写到用户的时候要有加密  这里的思路是判断类中是否有一个方法 有的话先调用这个方法
+        if (method_exists($this, 'before_encryption')) {
+            $this->before_encryption();
+        }
 
         //如果是更新
         if ($is_update) {
@@ -51,7 +76,7 @@ class Model extends Db
             }
             $this->where('id', $filled['id']);
             $r = $this->update($filled);
-        }else{
+        } else {
             //删除ID  这是添加 不管有没有ID  都要有这个删除以防万一
             unset($filled['id']);
             if (!@$filled['created_at']) {
@@ -60,10 +85,10 @@ class Model extends Db
             if (!@$filled['update_at']) {
                 $filled['update_at'] = $this->set_time();
             }
-            if($this->insert($filled)){
+            if ($this->insert($filled)) {
                 //如果添加成功 返回最后一条ID
                 $r = $this->last_id();
-            }else{
+            } else {
                 return false;
             }
         }
@@ -78,8 +103,9 @@ class Model extends Db
     }
 
     //限制显示
-    public function page($page,$limit=10){
-        $this->limit($limit,($page-1)*$limit);
+    public function page($page, $limit = 10)
+    {
+        $this->limit($limit, ($page - 1) * $limit);
         return $this;
     }
 

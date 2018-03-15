@@ -49,7 +49,11 @@ function json($data)
     return json_encode($data);
 }
 
-function json_die($data){
-    echo  json($data);
+function json_die($data)
+{
+    echo json($data);
     die();
 }
+
+//差一个图片
+

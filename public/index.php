@@ -32,6 +32,7 @@ function router_path()
             //用于放错误信息的
             $msg = [];
             //这里需要权限判断
+
             //实例化这个类
             $klass = new $method();
             //并且调用他的方法
