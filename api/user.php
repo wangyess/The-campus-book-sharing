@@ -46,7 +46,7 @@ class User extends Api
     }
 
     //退出
-    public function logout()
+    public static function logout()
     {
         unset($_SESSION['user']);
         return true;

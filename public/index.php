@@ -46,7 +46,25 @@ function router_path()
 
             json_die(s($r));
             break;
-
+        case 'admin':
+            tpl('view/admin/' . $arr[1]);
+            die();
+            break;
+        case '':
+            tpl('view/public/home');
+            break;
+        case 'login':
+            tpl('view/public/login');
+            break;
+        case 'signup':
+            tpl('view/public/signup');
+            break;
+        case 'logout':
+//            User::logout();
+//            redirect('/login');
+            break;
+        default:
+            break;
     }
 }
 
