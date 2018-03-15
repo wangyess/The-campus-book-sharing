@@ -52,6 +52,7 @@ class User extends Api
         return true;
     }
 
+    //修改权限或者根系
     //注册时密码加密
     public function before_encryption()
     {

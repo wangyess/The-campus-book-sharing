@@ -32,6 +32,9 @@ function router_path()
             //用于放错误信息的
             $msg = [];
             //这里需要权限判断
+            if (!has_permission_to($arr[1], $arr[2])) {
+                json_die(e('permission_denied'));
+            }
 
             //实例化这个类
             $klass = new $method();
@@ -45,6 +48,59 @@ function router_path()
             break;
 
     }
-
-
 }
+
+//权限控制
+function has_permission_to($model, $action)
+{
+    $public = [
+        'user'    => ['signup', 'login', 'logout'],
+        'product' => ['read', 'read_item', 'read_number'],
+        'cat'     => ['read', 'read_number'],
+    ];
+    $private = [
+        'product' => [
+            'add'    => ['admin'],
+            'change' => ['admin'],
+            'remove' => ['admin'],
+        ],
+        'cat'     => [
+            'add'    => ['admin'],
+            'change' => ['admin'],
+            'remove' => ['admin'],
+        ],
+        //            'user'    => [
+        //                'remove' => ['admin'],
+        //                'update' => ['admin'],
+        //            ],
+    ];
+
+    //首先判断 是否存在这个类和这个方法
+    if (!key_exists($model, $public) && !key_exists($model, $private)) {
+        return false;
+    }
+
+    //如果存在这个类 在判断这个类中是否有这个方法
+    $public_model = @$public[ $model ];
+    if ($public_model && in_array($action, $public_model)) {
+        return true;
+    }
+
+    $action_arr = @$private[ $model ];
+    //判断方法是否在这个数组中
+    if (!$action_arr || !key_exists($action, $action_arr)) {
+        return false;
+    }
+    //权限数组
+    $permission_arr = @$action_arr[ $action ];
+
+    //获取当前用户权限
+    $user_permission = @$_SESSION['user']['permission'];
+    if (!in_array($user_permission, $permission_arr)) {
+        return false;
+    }
+
+    return true;
+}
+
+
